@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="tg"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102a56"><title>Техникаҳои муассиса</title>
+<style>
+:root{--navy:#102a56;--blue:#174783;--bg:#eef3f9;--white:#fff;--muted:#66758a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:#172338}
+header{background:linear-gradient(120deg,#0b1d3d,#174783);color:white;padding:20px 16px}
+header h1{font-size:21px;margin:0 0 6px}header p{margin:0;color:#d8e6f8;font-size:13px}
+main{max-width:1000px;margin:auto;padding:14px}.toolbar,.panel,.machine{background:white;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 3px 14px #17365d12}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>*{flex:1}
+input,select,textarea,button{font:inherit;border-radius:9px;padding:11px;border:1px solid #cbd5e1;min-width:0}
+input,select,textarea{background:#fff;width:100%}button{background:var(--blue);color:white;border:0;font-weight:600;cursor:pointer}
+button.secondary{background:#e7eef8;color:#17365d}button.danger{background:#9f2635}
+.machine{display:flex;align-items:center;justify-content:space-between;gap:12px}.machine strong{display:block}.muted{color:var(--muted);font-size:13px}
+#detail{display:none}.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}.tabs button{padding:9px 11px}.tabs button.active{background:#0b1d3d}
+.item{padding:10px;border-bottom:1px solid #e6ebf2}.item:last-child{border:0}
+label{font-size:13px;color:#526178;display:block;margin:8px 0 5px}
+.notice{background:#fff7df;border:1px solid #f0d68a;padding:11px;border-radius:10px;font-size:13px}
+.hidden{display:none}.title{font-size:18px;margin:0 0 10px}.empty{color:#718096;padding:14px;text-align:center}.authbox{max-width:520px;margin:24px auto;background:#fff;padding:18px;border-radius:14px;box-shadow:0 3px 14px #17365d12}.account-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 0;border-bottom:1px solid #e6ebf2}.account-row input{min-width:0}.report-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}.report-card{background:#f7f9fc;border:1px solid #e3eaf3;border-radius:10px;padding:12px}.report-card b{display:block;font-size:20px;margin-top:4px}.spec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}.spec-field{background:#f7f9fc;border:1px solid #e3eaf3;border-radius:10px;padding:10px}.spec-field b{display:block;font-size:12px;color:#66758a;margin-bottom:5px}.spec-edit{background:#f7f9fc;border:1px solid #e3eaf3;border-radius:12px;padding:12px;margin-top:12px}.spec-photo{display:block;max-width:100%;max-height:240px;object-fit:contain;border-radius:10px;margin:8px 0;border:1px solid #e3eaf3}
+@media(min-width:700px){#machines{display:grid;grid-template-columns:1fr 1fr;gap:10px} .machine{margin:0}}
+</style></head>
+<body>
+<header><h1>ТЕХНИКАҲОИ МУАССИСА</h1><p>Муассисаи давлатии беҳдошти замин ва обёрии Ёвон дар ҳавзаи дарёи Вахш</p></header>
+<main>
+<div class="authbox" id="authBox">
+ <h2 class="title" id="authTitle">Воридшавӣ ба барнома</h2>
+ <div id="firstSetup" class="hidden">
+  <p class="muted">Бори аввал: барои маъмур рамзи махфӣ созед. Номи маъмур: URUNZODA SOMON</p>
+  <label>Рамзи маъмур (на кам аз 6 аломат)</label><input id="newAdminPass" type="password" autocomplete="new-password">
+  <label>Такрори рамзи маъмур</label><input id="newAdminPass2" type="password" autocomplete="new-password">
+  <button style="margin-top:10px;width:100%" onclick="createAdmin()">Сохтани ҳисоби маъмур</button>
+ </div>
+ <div id="loginFields">
+  <label>Почтаи электронии Firebase</label><input id="loginUser" type="email" autocomplete="username" placeholder="Почтаи электронии ҳисоби шумо">
+  <label>Рамзи ҳисоби Firebase</label><input id="loginPass" type="password" autocomplete="current-password">
+  <button style="margin-top:10px;width:100%" onclick="login()">Ворид шудан</button>
+ </div>
+ <p class="muted" id="authMessage">Барои воридшавӣ ҳисоби Firebase лозим аст.</p>
+</div>
+<div id="appContent" class="hidden">
+<div class="toolbar">
+ <div class="row"><input id="search" placeholder="Ҷустуҷӯи техника, таъмир, сӯзишворӣ, ҳисобот... / Поиск техники и записей..." oninput="renderMachines()"><select id="lang" onchange="setLang(this.value)"><option value="tg">Тоҷикӣ</option><option value="ru">Русский</option></select></div>
+ <div class="row" style="margin-top:9px"><button onclick="openChatGPT()">✦ ChatGPT</button><button class="secondary" id="exportBtn" onclick="exportData()">Нусхаи эҳтиётӣ / Экспорт</button><button class="secondary" id="restoreBtn" onclick="document.getElementById('restore').click()">Барқарор кардан / Импорт</button><input id="restore" type="file" accept="application/json" class="hidden" onchange="importData(event)"></div>
+</div>
+<div class="row" style="margin-bottom:10px"><span class="muted" id="sessionInfo"></span><button class="secondary" style="flex:0 0 auto" onclick="logout()">Баромадан</button></div>
+<div class="notice" id="cloudStatus">Пас аз воридшавӣ маълумот аз Firebase бор карда мешавад...</div>
+<div id="home"><div class="tabs"><button class="active" id="machinesViewBtn" onclick="showMainView('machines')">Техникаҳо</button><button id="reportsViewBtn" onclick="showMainView('reports')">Ҳисоботҳо</button></div><section id="machinesView"><h2 class="title" id="listTitle">Рӯйхати техникаҳо (17)</h2><div id="machines"></div></section><section id="reportsView" class="hidden"><h2 class="title" id="reportsTitle">Ҳисоботи техникаҳо</h2><div class="panel"><div class="report-grid"><div><label>Аз сана</label><input type="date" id="reportFrom"></div><div><label>То сана</label><input type="date" id="reportTo"></div><div><label>Техника</label><select id="reportMachine"><option value="all">Ҳамаи техникаҳо</option></select></div></div><button style="margin-top:10px" onclick="generateReport()">Таҳияи ҳисобот</button><button class="secondary" style="margin-top:10px" onclick="printReport()">Чоп / PDF</button></div><div id="reportOutput"><div class="empty">Барои дидани ҳисобот давраро интихоб кунед.</div></div></section></div>
+<div id="detail" class="panel">
+ <div class="row"><div><h2 id="machineName" class="title"></h2><div id="machineYear" class="muted"></div></div><button class="secondary" style="flex:0 0 auto" onclick="goHome()">← Бозгашт</button></div>
+ <div class="tabs" id="tabs"></div><div id="tabContent"></div>
+</div>
+<div class="panel hidden" id="adminPanel">
+ <h2 class="title">Ҳолати маъмур</h2>
+ <div class="muted">Номи маъмур: URUNZODA SOMON</div>
+ <div class="row" style="margin-top:10px"><button onclick="toggleAdmin()" id="adminToggle">Кушодани таҳрир</button></div>
+ <div id="adminTools" class="hidden">
+  <p class="muted">Маъмур метавонад сабтҳоро таҳрир кунад ва барои 10 корманд рамз таъин намояд. Ин низом дар ҳамин дастгоҳ кор мекунад.</p>
+  <p class="muted">Кормандон бояд ҳамчун корбари Firebase бо почтаи электронӣ ва рамзи худ сохта шаванд. Ҳуқуқи онҳо танҳо барои хондан аст.</p>
+  <hr>
+  <h3>Ҳисоботи ҳаррӯзаи техника</h3>
+  <label>Техника</label><select id="dailyMachine"></select>
+  <label>Сана</label><input id="dailyDate" type="date">
+  <div class="report-grid"><div><label>Соатҳои корӣ</label><input id="dailyHours" type="number" min="0" step="0.1" placeholder="Масалан: 6"></div><div><label>Сӯзишворӣ (литр)</label><input id="dailyFuel" type="number" min="0" step="0.1" placeholder="Масалан: 50"></div><div><label>Хароҷоти таъмир (сомонӣ)</label><input id="dailyCost" type="number" min="0" step="0.01" placeholder="Масалан: 150"></div></div>
+  <label>Кори иҷрошуда</label><textarea id="dailyWork" rows="2" placeholder="Масалан: Тоза кардани захбур аз лою гил"></textarea>
+  <label>Маълумот оид ба таъмир (агар бошад)</label><textarea id="dailyRepair" rows="2" placeholder="Қисмҳои ивазшуда ё корҳои таъмирӣ"></textarea>
+  <button style="margin-top:10px" onclick="saveDailyReport()">Сабти ҳисоботи ҳаррӯза</button>
+  <hr>
+  <label>Иловаи сабти умумӣ ба техникаи интихобшуда</label>
+  <select id="recordType"><option value="repairs">Таъмир / Ремонт</option><option value="fuel">Сӯзишворӣ / Топливо</option><option value="work">Кори ҳаррӯза / Ежедневная работа</option><option value="docs">Ҳуҷҷат / Документ</option></select>
+  <label>Сана</label><input id="recordDate" type="date">
+  <label>Маълумот</label><textarea id="recordText" rows="3" placeholder="Маълумотро ворид кунед..."></textarea>
+  <label>Замима (PDF, Word ё акс; андоза то 700 KB)</label><input id="recordFile" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp">
+  <button style="margin-top:10px" onclick="addRecord()">Сабт кардан</button>
+ </div>
+</div>
+<footer class="muted" style="text-align:center;padding:12px">Версияи пайвастшаванда ба Firebase · Маълумоти техникӣ бе санҷиш пур карда намешавад</footer>
+</main>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyASvCN6YMnPBI9xnNYZ73F6yQyrbuLrALs",
+  authDomain: "yovon-tehnika.firebaseapp.com",
+  projectId: "yovon-tehnika",
+  storageBucket: "yovon-tehnika.firebasestorage.app",
+  messagingSenderId: "59581887916",
+  appId: "1:59581887916:web:6556085923dd6af7dbf609"
+};
+const ADMIN_UID = "VcPJexrUf9Udv3K2hFm6eHbnIHN2";
+firebase.initializeApp(firebaseConfig);
+const fbAuth = firebase.auth();
+const cloudDoc = firebase.firestore().collection("appData").doc("machinery");
+let cloudReady = false;
+let cloudBusy = false;
+let unsubscribeCloud = null;
+const seed = [{"id": 1, "name": "Булдозер Т-130", "year": "1988"}, {"id": 2, "name": "Экскаватор ЭО-4111", "year": "2003"}, {"id": 3, "name": "Трактор МТЗ-80", "year": "1987"}, {"id": 4, "name": "Автомобили борбардор МАЗ-35534", "year": "1986"}, {"id": 5, "name": "Экскаватори MG-3,6 (Хитой)", "year": "2009"}, {"id": 6, "name": "Экскаватори чархдор MFL150W", "year": "2023"}, {"id": 7, "name": "Автомашина ДЭУ Нексия", "year": "1997"}, {"id": 8, "name": "Экскаватор Э-4111", "year": "1986"}, {"id": 9, "name": "Экскаватор Э-4111", "year": "1986"}, {"id": 10, "name": "Прицеп 2 ПТС-4", "year": "1988"}, {"id": 11, "name": "Прицеп-трал 40 тонна", "year": "1986"}, {"id": 12, "name": "Автомобили Nissan Qashqai", "year": "2018"}, {"id": 13, "name": "Экскаватори тамғаи HYUNDAI", "year": "2018"}, {"id": 14, "name": "Автомашинаи тамғаи SHACMAN", "year": "2018"}, {"id": 15, "name": "Трактор Беларус ЮМЗ-6 (экскаватор)", "year": "Маълумот ворид нашудааст"}, {"id": 16, "name": "Трактор Т-40", "year": "Маълумот ворид нашудааст"}, {"id": 17, "name": "Автомашина ГАЗ-52", "year": "Маълумот ворид нашудааст"}];
+const KEY='tekhnikahoi_muasisa_offline_v1';
+const AUTH_KEY='tekhnikahoi_auth_v1';
+let auth={};
+let role=null;
+let db=JSON.parse(localStorage.getItem(KEY)||'null')||seed.map(m=>({...m,records:[]}));
+let selected=null, currentTab='specs', admin=false, lang='tg';
+const labels={tg:{specs:'Хусусиятҳои техникӣ',repairs:'Таъмир',fuel:'Сӯзишворӣ',work:'Кори ҳаррӯза',docs:'Ҳуҷҷатҳо'},ru:{specs:'Технические характеристики',repairs:'Ремонт',fuel:'Топливо',work:'Ежедневная работа',docs:'Документы'}};
+function save(){
+ localStorage.setItem(KEY,JSON.stringify(db));
+ if(!cloudReady || !role || cloudBusy) return;
+ if(role!=='admin') return;
+ const payload=JSON.parse(JSON.stringify(db));
+ // Large attachments/photos must be moved to Firebase Storage separately; do not put base64 files in Firestore.
+ payload.forEach(m=>{if(m.specs && m.specs.photo) delete m.specs.photo;(m.records||[]).forEach(r=>{if(r.fileData) delete r.fileData})});
+ cloudDoc.set({items:payload,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:fbAuth.currentUser.uid})
+  .then(()=>setCloudStatus('Маълумот ба Firebase сабт шуд.'))
+  .catch(e=>setCloudStatus('Хатои сабти абрӣ: '+e.message));
+}
+function setCloudStatus(t){const el=document.getElementById('cloudStatus');if(el)el.textContent=t}
+async function loadCloudData(user){
+ cloudReady=false; cloudBusy=true;
+ try{
+  const snap=await cloudDoc.get();
+  if(snap.exists && Array.isArray(snap.data().items)){
+   db=snap.data().items; localStorage.setItem(KEY,JSON.stringify(db));
+   setCloudStatus('Маълумот аз Firebase бор карда шуд. Ҳамоҳангсозӣ фаъол аст.');
+  } else if(user.uid===ADMIN_UID){
+   // First cloud initialization: preserve the current local inventory and publish it once.
+   const payload=JSON.parse(JSON.stringify(db));
+   payload.forEach(m=>{if(m.specs && m.specs.photo) delete m.specs.photo;(m.records||[]).forEach(r=>{if(r.fileData) delete r.fileData})});
+   await cloudDoc.set({items:payload,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:user.uid});
+   db=payload; localStorage.setItem(KEY,JSON.stringify(db));
+   setCloudStatus('Аввалин рӯйхати техникаҳо ба Firebase сабт шуд.');
+  } else {
+   throw new Error('Маълумоти абрӣ ҳанӯз сохта нашудааст. Маъмур бояд аввал ворид шавад.');
+  }
+  cloudReady=true;
+ } finally {cloudBusy=false}
+}
+function startCloudSync(){
+ if(unsubscribeCloud){unsubscribeCloud();unsubscribeCloud=null;}
+ unsubscribeCloud=cloudDoc.onSnapshot(snap=>{
+  if(!snap.exists || !Array.isArray(snap.data().items)) return;
+  // The administrator's own edits are already reflected locally; employees receive live updates.
+  if(role==='employee'){
+   const currentId=selected?selected.id:null;
+   db=snap.data().items;
+   localStorage.setItem(KEY,JSON.stringify(db));
+   renderMachines();fillReportMachineOptions();
+   if(currentId!==null){
+    const fresh=db.find(m=>m.id===currentId);
+    if(fresh){selected=fresh;openMachine(currentId);}else goHome();
+   }
+   setCloudStatus('Маълумот нав шуд ва бо Firebase ҳамоҳанг аст.');
+  }
+ },e=>setCloudStatus('Хатои ҳамоҳангсозии Firebase: '+e.message));
+}
+function showMainView(v){document.getElementById('machinesView').classList.toggle('hidden',v!=='machines');document.getElementById('reportsView').classList.toggle('hidden',v!=='reports');document.getElementById('machinesViewBtn').classList.toggle('active',v==='machines');document.getElementById('reportsViewBtn').classList.toggle('active',v==='reports');if(v==='reports')fillReportMachineOptions() }
+function fillReportMachineOptions(){['reportMachine','dailyMachine'].forEach(id=>{let el=document.getElementById(id);if(!el)return;let val=el.value;el.innerHTML=(id==='reportMachine'?'<option value="all">Ҳамаи техникаҳо</option>':'')+db.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');if(val&&[...el.options].some(o=>o.value===val))el.value=val})}
+function saveDailyReport(){if(role!=='admin'){alert('Танҳо маъмур метавонад ҳисобот сабт кунад');return}let id=Number(document.getElementById('dailyMachine').value),m=db.find(x=>x.id===id),date=document.getElementById('dailyDate').value,hours=Number(document.getElementById('dailyHours').value||0),fuel=Number(document.getElementById('dailyFuel').value||0),cost=Number(document.getElementById('dailyCost').value||0),work=document.getElementById('dailyWork').value.trim(),repair=document.getElementById('dailyRepair').value.trim();if(!m||!date||(!hours&&!fuel&&!cost&&!work&&!repair)){alert('Техника, сана ва ҳадди ақал як маълумотро ворид кунед');return}if(hours<0||fuel<0||cost<0){alert('Рақамҳо набояд манфӣ бошанд');return}(m.records||(m.records=[])).push({type:'report',date,hours,fuel,cost,work,repair,text:[work,repair].filter(Boolean).join(' | ')});save();['dailyHours','dailyFuel','dailyCost','dailyWork','dailyRepair'].forEach(x=>document.getElementById(x).value='');alert('Ҳисоботи ҳаррӯза сабт шуд');generateReport()}
+function generateReport(){let from=document.getElementById('reportFrom').value,to=document.getElementById('reportTo').value,mid=document.getElementById('reportMachine').value;if(!from||!to||from>to){alert('Санаи оғоз ва анҷомро дуруст интихоб кунед');return}let rows=[];db.filter(m=>mid==='all'||String(m.id)===mid).forEach(m=>(m.records||[]).filter(r=>r.type==='report'&&r.date>=from&&r.date<=to).forEach(r=>rows.push({...r,machine:m.name})));let totals=rows.reduce((a,r)=>({hours:a.hours+(Number(r.hours)||0),fuel:a.fuel+(Number(r.fuel)||0),cost:a.cost+(Number(r.cost)||0)}),{hours:0,fuel:0,cost:0});let out=document.getElementById('reportOutput');out.innerHTML=`<div class="report-grid"><div class="report-card">Соатҳои корӣ<b>${totals.hours.toFixed(1)}</b></div><div class="report-card">Сӯзишворӣ (литр)<b>${totals.fuel.toFixed(1)}</b></div><div class="report-card">Хароҷоти таъмир (сомонӣ)<b>${totals.cost.toFixed(2)}</b></div><div class="report-card">Шумораи ҳисоботҳо<b>${rows.length}</b></div></div>`+(rows.length?rows.sort((a,b)=>a.date.localeCompare(b.date)).map(r=>`<div class="item"><b>${escapeHtml(r.date)} — ${escapeHtml(r.machine)}</b><p>${escapeHtml(r.work||'Кори иҷрошуда нишон дода нашудааст')}</p><div class="muted">Соат: ${Number(r.hours)||0} · Сӯзишворӣ: ${Number(r.fuel)||0} л · Таъмир: ${Number(r.cost)||0} сомонӣ</div>${r.repair?`<p>Таъмир: ${escapeHtml(r.repair)}</p>`:''}</div>`).join(''):'<div class="empty">Дар ин давра ҳисобот нест.</div>');}
+function printReport(){let content=document.getElementById('reportOutput').innerHTML,w=window.open('','_blank');if(!w){alert('Барои чоп иҷозати кушодани равзана лозим аст');return}w.document.write('<html><head><meta charset="utf-8"><title>Ҳисоботи техникаҳо</title><style>body{font-family:Arial;padding:20px;color:#172338}.report-grid{display:flex;gap:10px}.report-card{border:1px solid #ddd;padding:12px;flex:1}.item{padding:10px;border-bottom:1px solid #ddd}.muted{color:#555}</style></head><body><h2>Ҳисоботи техникаҳои муассиса</h2><p>'+document.getElementById('reportFrom').value+' — '+document.getElementById('reportTo').value+'</p>'+content+'</body></html>');w.document.close();w.print()}
+function initAuth(){document.getElementById('firstSetup').classList.add('hidden');document.getElementById('loginFields').classList.remove('hidden');}
+async function login(){
+ const email=document.getElementById('loginUser').value.trim();
+ const pass=document.getElementById('loginPass').value;
+ if(!email||!pass){alert('Почтаи электронӣ ва рамзро ворид кунед');return}
+ try{
+  const cred=await fbAuth.signInWithEmailAndPassword(email,pass);
+  role=cred.user.uid===ADMIN_UID?'admin':'employee';
+  await loadCloudData(cred.user);
+  startCloudSync();
+  document.getElementById('authBox').classList.add('hidden');
+  document.getElementById('appContent').classList.remove('hidden');
+  document.getElementById('sessionInfo').textContent=role==='admin'?'Маъмур: URUNZODA SOMON':'Корманд: '+email;
+  document.getElementById('adminPanel').classList.toggle('hidden',role!=='admin');
+  document.getElementById('adminToggle').classList.toggle('hidden',role!=='admin');
+  document.getElementById('exportBtn').classList.toggle('hidden',role!=='admin');
+  document.getElementById('restoreBtn').classList.toggle('hidden',role!=='admin');
+  renderMachines();fillReportMachineOptions();
+ }catch(e){role=null;setCloudStatus('');alert('Воридшавӣ ё боркунии маълумот муваффақ нашуд: '+e.message)}
+}
+async function logout(){if(unsubscribeCloud){unsubscribeCloud();unsubscribeCloud=null;}try{await fbAuth.signOut()}catch(e){}role=null;cloudReady=false;admin=false;document.getElementById('appContent').classList.add('hidden');document.getElementById('authBox').classList.remove('hidden');document.getElementById('loginPass').value='';document.getElementById('adminTools').classList.add('hidden')}
+function renderEmployeeAccounts(){}
+function saveEmployeePasswords(){alert("Ҳисобҳои кормандон бояд дар Firebase Authentication сохта шаванд.")}
+function openChatGPT(){window.open('https://chatgpt.com/','_blank','noopener,noreferrer')}
+function renderMachines(){let q=document.getElementById('search').value.trim().toLowerCase();let list=db.filter(m=>{let records=m.records||[];let haystack=[m.name,m.year,...Object.values(m.specs||{}),...records.flatMap(r=>[r.text,r.date,r.fileName,r.type])].join(' ').toLowerCase();return !q||haystack.includes(q)});document.getElementById('machines').innerHTML=list.map(m=>{let records=m.records||[];let match= q ? records.find(r=>[r.text,r.date,r.fileName,r.type].join(' ').toLowerCase().includes(q)) : null;let hint=match?`<span class="muted">${lang==='tg'?'Ёфт шуд дар сабт: ':'Найдено в записи: '}${escapeHtml(labels[lang][match.type]||match.type)} ${escapeHtml(match.date||'')}</span>`:'';return `<div class="machine"><div><strong>${m.id}. ${escapeHtml(m.name)}</strong><span class="muted">${escapeHtml(m.year)}</span>${hint}</div><button onclick="openMachine(${m.id})">${lang==='tg'?'Кушодан':'Открыть'}</button></div>`}).join('')||`<div class="empty">${lang==='tg'?'Маълумот ёфт нашуд':'Ничего не найдено'}</div>`;document.getElementById('listTitle').textContent=(lang==='tg'?'Натиҷаи ҷустуҷӯ':'Результаты поиска')+' ('+list.length+')'}
+function openMachine(id){selected=db.find(m=>m.id===id);document.getElementById('home').style.display='none';document.getElementById('detail').style.display='block';document.getElementById('machineName').textContent=selected.name;document.getElementById('machineYear').textContent=(lang==='tg'?'Соли барориш: ':'Год выпуска: ')+selected.year;document.getElementById('tabs').innerHTML=['specs','repairs','fuel','work','docs'].map(t=>`<button class="${t===currentTab?'active':''}" onclick="showTab('${t}')">${labels[lang][t]}</button>`).join('');showTab(currentTab)}
+function showTab(t){
+ currentTab=t;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('active',b.textContent===labels[lang][t]));
+ let records=selected.records||[];records=records.filter(r=>r.type===t);let content='';
+ if(t==='specs'){
+  let sp=selected.specs||{};let fields=[['model','Тамға ва модел','Марка и модель'],['weight','Вазн (кг)','Масса (кг)'],['dimensions','Андозаҳои умумӣ','Габаритные размеры'],['tires','Андозаи шинаҳо','Размер шин'],['engine','Муҳаррик / ҳаҷм','Двигатель / объём'],['engineModel','Модел ва навъи муҳаррик','Модель и тип двигателя'],['enginePower','Қувваи муҳаррик (асп / кВт)','Мощность двигателя (л.с. / кВт)'],['tank','Ҳаҷми баки сӯзишворӣ (л)','Объём топливного бака (л)'],['oilType','Навъи равғани тавсияшаванда','Рекомендуемый тип масла'],['serviceInterval','Фосилаи хизматрасонии техникӣ','Интервал техобслуживания'],['manufacturer','Истеҳсолкунанда','Производитель'],['serial','Рақами заводӣ','Заводской номер'],['notes','Маълумоти иловагӣ','Дополнительные сведения']];
+  content=(sp.photo?`<img class="spec-photo" src="${sp.photo}" alt="Акси техника">`:'')+`<div class="spec-grid"><div class="spec-field"><b>${lang==='tg'?'Соли барориш':'Год выпуска'}</b>${escapeHtml(selected.year||'—')}</div>`+fields.map(([k,tg,ru])=>`<div class="spec-field"><b>${lang==='tg'?tg:ru}</b>${escapeHtml(sp[k]||'Маълумот ворид нашудааст')}</div>`).join('')+`</div>`;
+  if(role==='admin')content+=`<div class="spec-edit"><h3>${lang==='tg'?'Таҳрири шиносномаи техникӣ':'Редактирование техпаспорта'}</h3><div class="spec-grid">`+fields.map(([k,tg,ru])=>`<div><label>${lang==='tg'?tg:ru}</label><textarea id="spec_${k}" rows="2">${escapeHtml(sp[k]||'')}</textarea></div>`).join('')+`</div><label>${lang==='tg'?'Акси техника':'Фотография техники'}</label><input id="specPhoto" type="file" accept="image/*"><button class="secondary" type="button" onclick="removeMachinePhoto()" style="margin-top:8px">${lang==='tg'?'Нест кардани акс':'Удалить фото'}</button><button style="margin-top:10px" onclick="saveMachineSpecs()">${lang==='tg'?'Сабти хусусиятҳо':'Сохранить характеристики'}</button><p class="muted">${lang==='tg'?'Маълумоти тасдиқшударо ворид кунед; маълумоти номаълумро холӣ гузоред. Акс то 700 KB бошад.':'Вносите только проверенные данные; неизвестные поля оставляйте пустыми. Фото до 700 KB.'}</p></div>`;
+ } else {
+  let allRecords=selected.records||[];
+  let matching=allRecords.map((r,index)=>({r,index})).filter(x=>x.r.type===t);
+  content=matching.length?matching.map(({r,index})=>{
+   let fileLink='';
+   if(r.fileName){
+    fileLink=r.fileData?`<div class="muted">Файл: ${escapeHtml(r.fileName)}</div><a href="${r.fileData}" download="${escapeHtml(r.fileName)}" target="_blank" rel="noopener">${lang==='tg'?'Кушодан / зеркашии файл':'Открыть / скачать файл'}</a>`:`<div class="muted">${escapeHtml(r.fileName)}</div>`;
+   }
+   let deleteButton=role==='admin'?`<div style="margin-top:8px"><button class="danger" onclick="removeRecord(${index})">${lang==='tg'?'Нест кардани сабт':'Удалить запись'}</button></div>`:'';
+   return `<div class="item"><b>${escapeHtml(r.date||'')}</b><p>${escapeHtml(r.text||'')}</p>${fileLink}${deleteButton}</div>`;
+  }).join(''):'<div class="empty">Маълумот ворид нашудааст / Данные не внесены</div>';
+ }
+ document.getElementById('tabContent').innerHTML=content;
+}
+function saveMachineSpecs(){if(role!=='admin'||!selected){alert('Танҳо маъмур метавонад тағйир диҳад');return}let keys=['model','weight','dimensions','tires','engine','engineModel','enginePower','tank','oilType','serviceInterval','manufacturer','serial','notes'];selected.specs=selected.specs||{};keys.forEach(k=>selected.specs[k]=document.getElementById('spec_'+k).value.trim());let f=document.getElementById('specPhoto').files[0];if(f){if(!f.type.startsWith('image/')){alert('Лутфан файли акс интихоб кунед');return}if(f.size>700000){alert('Акс калон аст. Акс то 700 KB интихоб кунед');return}let reader=new FileReader();reader.onload=()=>{selected.specs.photo=reader.result;save();showTab('specs');alert('Шиносномаи техникӣ ва акс сабт шуданд')};reader.readAsDataURL(f)}else{save();showTab('specs');alert('Шиносномаи техникӣ сабт шуд')}}
+function removeMachinePhoto(){if(role!=='admin'||!selected)return;if(confirm('Акси ин техникаро нест кунед?')){selected.specs=selected.specs||{};delete selected.specs.photo;save();showTab('specs')}}
+function removeRecord(index){if(role!=='admin'||!selected)return;if(!Number.isInteger(index)||index<0||index>=selected.records.length)return;if(confirm(lang==='tg'?'Ин сабтро нест мекунед?':'Удалить эту запись?')){selected.records.splice(index,1);save();showTab(currentTab)}}
+function goHome(){document.getElementById('detail').style.display='none';document.getElementById('home').style.display='block';selected=null}
+function toggleAdmin(){if(role!=='admin')return;renderEmployeeAccounts();fillReportMachineOptions();if(!document.getElementById('dailyDate').value)document.getElementById('dailyDate').value=new Date().toISOString().slice(0,10);admin=!admin;document.getElementById('adminTools').classList.toggle('hidden',!admin);document.getElementById('adminToggle').textContent=admin?'Пӯшидани таҳрир':'Кушодани таҳрир'}
+function addRecord(){if(role!=='admin'){alert('Танҳо маъмур метавонад сабт ворид кунад');return}if(!selected){alert('Аввал техника интихоб кунед');return}let type=document.getElementById('recordType').value,date=document.getElementById('recordDate').value,text=document.getElementById('recordText').value.trim(),f=document.getElementById('recordFile').files[0];if(!text&&!f){alert('Маълумот ё файл ворид кунед');return}let add=(data)=>{selected.records.push({type,date,text,fileName:f?f.name:'',fileData:data||''});save();document.getElementById('recordText').value='';document.getElementById('recordFile').value='';showTab(type);alert('Дар ҳамин дастгоҳ сабт шуд')};if(f){if(f.size>700000){alert('Файл калон аст. Барои ин намуна файл то 700 KB интихоб кунед.');return}let reader=new FileReader();reader.onload=()=>add(reader.result);reader.readAsDataURL(f)}else add('')}
+function exportData(){if(role!=='admin'){alert('Танҳо маъмур иҷозат дорад');return}let blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='tekhnikahoi_backup.json';a.click();URL.revokeObjectURL(a.href)}
+function importData(e){if(role!=='admin'){alert('Танҳо маъмур иҷозат дорад');return}let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!Array.isArray(x))throw 0;db=x;save();renderMachines();alert('Маълумот барқарор шуд')}catch(_){alert('Файли нодуруст')}};r.readAsText(f)}
+function clearLocal(){if(role!=='admin'){alert('Ин амал танҳо барои маъмур аст');return}if(confirm('Ҳамаи сабтҳои маҳаллӣ пок шаванд? Аввал нусхаи эҳтиётӣ гиред.')){localStorage.removeItem(KEY);db=seed.map(m=>({...m,records:[]}));save();renderMachines();goHome()}}
+function setLang(v){lang=v;renderMachines();if(selected)openMachine(selected.id)}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+initAuth();renderMachines();fillReportMachineOptions();
+</script></body></html>
